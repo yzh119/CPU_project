@@ -17,22 +17,28 @@ module reg_file (
 
 	reg[`RegDataBus] regs[0:`RegNum - 1];
 
-	always @ (posedge clk) begin
+	always @ (negedge clk) begin
 		if (w_write_reg == `WriteEnable)
 			regs[reg_des] <= reg_data;
 	end
 
 	always @ (negedge clk) begin
-	//	if (rs == `RegAddrBits'h0)
-	//		rs_o <= `ZeroWord;
-	//	else
-			rs_o <= regs[rs];
+		if (rs == `RegAddrBits'h0)
+			rs_o <= `ZeroWord;
+		else
+			if (rs == reg_des)
+				rs_o <= reg_data;
+			else 
+				rs_o <= regs[rs];
 	end
 
 	always @ (negedge clk) begin 
-	//	if (rt == `RegAddrBits'h0)
-	//		rt_o <= `ZeroWord;
-	//	else
-			rt_o <= regs[rt];
+		if (rt == `RegAddrBits'h0)
+			rt_o <= `ZeroWord;
+		else
+			if (rt == reg_des)
+				rt_o <= reg_data;
+			else
+				rt_o <= regs[rt];
 	end
 endmodule

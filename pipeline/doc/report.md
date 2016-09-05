@@ -175,7 +175,31 @@ inst_mem inst_mem_0(
   * 功能:
   取指令.
 
-5. 
+5. Instruction Decoding
+  * 接口:
+  ```Verilog
+  module id (
+    input rst,            // Reset
+
+    input[`InstAddrBus] inst_addr,  // Instruction address
+    input[`InstBus]   inst,     // Instruction
+
+    input reg_rt,         // Register destination == rt?
+    input jump,           // Jump instruction ?
+    input sext_signed,            // Signed or unsigned ?
+
+    output reg[`FuncBus]  func,       // Func
+    output reg[`OpcodeBus]  opcode,     // Opcode
+    output reg[`RsRtRdBus]  rs,       // rs
+    output reg[`RsRtRdBus]  rt,       // rt
+    output reg[`RsRtRdBus]  reg_des,    // rd or rt
+    output reg[`InstAddrBus] jump_addr,   // Jump address
+    output reg[`ALUBus]   imm_after_se  // Immediate after sign extension
+  );
+  ```
+
+  * 功能:
+  翻译指令.
 
 
 ##### Miscellaneous:

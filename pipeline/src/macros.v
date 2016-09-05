@@ -21,8 +21,10 @@
 `define RegAddrBits														5
 `define RegNum															32
 `define ForwardingBus													1:0
-`define InstMemNum														15'h8000
-`define InstMemNumLog													15
+`define InstMemNum														16'h8000
+`define InstMemNumLog													16
+`define DataMemNum														16'h8000
+`define DataMemNumLog													16
 `define FuncBus															5:0
 `define RsRtRdBus														4:0
 `define ShamtBus														4:0
@@ -47,6 +49,9 @@
 `define RsRtNotEqual													1'b0
 `define WriteEnable														1'b1
 `define WriteDisable													1'b0
+`define ReadEnable														1'b1
+`define ReadDisable														1'b0
+
 
 //====================== Arithmetic, Shift, Condition and Logic ===================================
 `define EXE_FUNC_ADD													6'h20
