@@ -25,7 +25,7 @@ module id_ex (
 	output reg [`RegDataBus] oprand_2_o, // Oprand 2 output.
 );
 
-	always @(*) begin
+	always @ (*) begin
 		exe_write_reg 	= write_reg;
 		exe_mem_to_reg 	= mem_to_reg;
 		exe_write_mem	= write_mem;

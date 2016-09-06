@@ -1,7 +1,6 @@
 `include "macros.v"
 
 module id (
-	input rst,						// Reset
 	input clk,						// Clock
 
 	input[`InstAddrBus] inst_addr, 	// Instruction address
@@ -19,7 +18,7 @@ module id (
 
 	input reg_rt,					// Register destination == rt?
 	input jump,						// Jump instruction ?
-	input sext_signed,						// Signed or unsigned ?
+	input sext_signed,				// Signed or unsigned ?
 
 	input[`ForwardingBus]	fwd_a,		// Forwarding A
 	input[`ForwardingBus]	fwd_b,		// Forwarding B
@@ -29,7 +28,7 @@ module id (
 	output reg [`RsRtRdBus]	rs, 			// rs
 	output reg [`RsRtRdBus] 	rt, 			// rt
 	output reg [`RegAddrBus]	reg_des, 		// rd or rt
-	output reg [`InstAddrBus] jump_addr,		// Jump address
+	output reg [`InstAddrBus] 	jump_addr,		// Jump address
 	output reg [`ALUBus]		imm_after_se,	// Immediate after sign extension
 
 	output reg [`RegDataBus]	oprand_1_o, 	// Output oprand_1
@@ -37,14 +36,16 @@ module id (
 	output reg rs_rt_equ 						// rs == rt ?
 );		
 
-	always @ (inst_addr, inst) begin
-		opcode <= inst[`OpcodeInInst];
-		rs <= inst[`RsInInst];
-		rt <= inst[`RtInInst];
-		func <= inst[`FuncInInst];
+	always @ (posedge clk) begin
+		
+		opcode 	= inst[`OpcodeInInst];
+		rs 		= inst[`RsInInst];
+		rt 		= inst[`RtInInst];
+		func 	= inst[`FuncInInst];
+
 	end
 
-	always @ (negedge clk) begin
+	always @ (*) begin
 
 		if (sext_signed)
 			imm_after_se = {{`LengthOfImmeInInst{1'h0}}, inst[`ImmeInInst]};
