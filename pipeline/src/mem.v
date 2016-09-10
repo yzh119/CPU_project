@@ -20,6 +20,10 @@ module mem (
 );
 	reg [`RegDataBus] mem_pool[0: `DataMemNum - 1];
 	
+	initial begin 
+		$readmemh("ram.data", mem_pool, 0, 25);
+	end
+
 	always @(posedge clk) begin 
 		m_write_reg_o 	<= m_write_reg_i;
 		m_mem_to_reg_o 	<= m_mem_to_reg_i;

@@ -33,6 +33,7 @@ module id (
 
 	output reg [`RegDataBus]	operand_1_o, 	// Output operand_1
 	output reg [`RegDataBus] 	operand_2_o, 	// Output operand_2
+	output reg [`RegDataBus] 	jal_addr,
 	output reg rs_rt_equ 						// rs == rt ?
 );		
 
@@ -47,6 +48,7 @@ module id (
 		func 	<= inst[`FuncInInst];
 		this_inst 		<= inst;
 		this_inst_addr	<= inst_addr;
+		jal_addr		<= inst_addr;
 
 	end
 
@@ -65,7 +67,8 @@ module id (
 			jump,			
 			sext_signed,
 			fwd_a,
-			fwd_b
+			fwd_b,
+			operand_1_o
 		) begin
 
 		if (sext_signed)
@@ -86,10 +89,11 @@ module id (
  * 2. j C(J-type, C takes 25:0) 
  *		PC = {(PC + 4)[31:28], C << 2}
  */
+
 		case (jump)
-			`JumpB: jump_addr = {this_inst_addr[`ConcatenateBitsForJumpInInst], this_inst[`AddressInInst], 2'h0};
-			`JumpJ: jump_addr = this_inst_addr + {this_inst[`ImmeInInst], 2'h0};
-			`JumpJR: jump_addr = operand_1_port_1;
+			`JumpJ: jump_addr = {this_inst_addr[`ConcatenateBitsForJumpInInst], this_inst[`AddressInInst], 2'h0};
+			`JumpB: jump_addr = this_inst_addr + {this_inst[`ImmeInInst], 2'h0};
+			`JumpJR: jump_addr = operand_1_o;
 			default: jump_addr = `ZeroWord;
 		endcase
 

@@ -17,7 +17,7 @@ module if_id (
 		id_inst <= `ZeroWord;
 	end
 
-	always @ (posedge clk) begin 
+	always @ (*) begin 
 
 		if (write_pc_ir == `False) begin
 			id_pc <= if_pc;

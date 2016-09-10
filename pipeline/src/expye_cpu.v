@@ -96,6 +96,9 @@ module expye_cpu(
 	wire [`RegDataBus] data_from_mem;
 	wire [`RegDataBus] mem_alu_result;
 
+	wire jal;
+	wire [`RegDataBus] jal_addr;
+
 	id id_0(
 			.clk        	(clk),
 
@@ -129,6 +132,7 @@ module expye_cpu(
 
 			.operand_1_o 	(op_after_sel_1),
 			.operand_2_o 	(op_after_sel_2),
+			.jal_addr    	(jal_addr),
 			.rs_rt_equ   	(rs_rt_equ)
 		);
 
@@ -141,7 +145,9 @@ module expye_cpu(
 	reg_file reg_file_0(
 			.clk        (clk),
 			.w_write_reg(w_write_reg),
+			.jal        (jal),
 
+			.jal_addr   (jal_addr),
 			.rs 	 	(id_rs),
 			.rt 		(id_rt),
 
@@ -156,6 +162,7 @@ module expye_cpu(
 	wire m_write_reg;
 	wire [`RegAddrBus] m_des_r;
 	wire [`RegAddrBus] e_des_r;
+	wire e_mem_to_reg;
 	wire e_write_reg;
 
 	control_unit control_unit_0(
@@ -163,6 +170,7 @@ module expye_cpu(
 			.m_write_reg 		(m_write_reg),
 			.m_des_r     		(m_des_r),
 			.e_des_r     		(e_des_r),
+			.e_mem_to_reg 		(e_mem_to_reg),
 			.e_write_reg 		(e_write_reg),
 			.rs_rt_equ   		(rs_rt_equ),
 			.func        		(id_func),
@@ -170,6 +178,7 @@ module expye_cpu(
 			.rs          		(id_rs),
 			.rt          		(id_rt),
 
+			.jal         		(jal),
 			.write_reg   		(ctl_write_reg),
 			.mem_to_reg  		(ctl_mem_to_reg),	
 			.write_mem   		(ctl_write_mem),
@@ -186,7 +195,6 @@ module expye_cpu(
 		);
 
 	wire [`RegDataBus] write_mem_val;
-	wire e_mem_to_reg;
 	wire e_write_mem;
 
 	ex ex_0(

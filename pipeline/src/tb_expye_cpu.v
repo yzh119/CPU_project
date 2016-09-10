@@ -15,7 +15,7 @@ module tb_expye_cpu;
 	end
 
 	initial begin 
-		#(30 * `Periodicity)
+		#(40 * `Periodicity)
 		$finish;
 	end
 

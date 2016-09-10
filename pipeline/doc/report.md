@@ -3,13 +3,16 @@
 ## Phase I: Pipeline CPU Design(simulation)
 
 ### Target
-完成[MIPS instruction set](https://en.wikipedia.org/wiki/MIPS_instruction_set#MIPS_assembly_language)的所有(??)指令, 第一阶段只进行模拟, 不写在FPGA上.
+用五级流水完成[MIPS instruction set](https://en.wikipedia.org/wiki/MIPS_instruction_set#MIPS_assembly_language)的所有(`mfcZ`和`mtcZ`涉及coprocessor, 暂不涉及)指令, 第一阶段只进行模拟, 不写在FPGA上.
 
 ### Environment
 轻量级环境:Sublime + System Verilog Plugin + [iverilog](https://github.com/steveicarus/iverilog) + [gtkwave](http://gtkwave.sourceforge.net/).
 
 为了在sublime上获得更好的自动补全体验, 可以安装[SublimeAllAutocomplete](https://github.com/alienhard/SublimeAllAutocomplete)插件.
 
+列编辑功能在写verilog时非常好用, 在windows下用`shift+右键`启用.
+
+Verilog快速入门: http://www.asic-world.com/verilog/verilog_one_day.html .
 #### Installation
 * Mac: [如何在Mac OS X上安裝Verilog環境](http://easonchang.logdown.com/posts/649863)
 * Win: [Compiling on MS Windows](http://iverilog.wikia.com/wiki/Installation_Guide#Compiling_on_MS_Windows_.28MinGW.29)
@@ -36,180 +39,30 @@ gtkwave默认不会显示波形, 需要将变量拖至右侧, 用快捷键`Alt+Z
 GCC-toolchain可以用于构建MIPS指令集的二进制码.
 
 ### Design
-大部分参考自李亚民资料和Digilent官方资料, 以及雷思磊的《自己动手写CPU》.
+框架由李亚民资料扩展而得.
 
-具体到每个单元:
+![CPU Design](http://7xkbgs.com1.z0.glb.clouddn.com/cpu_design.png)
 
-#### Pipeline Testbench
-每10个时间单元clk取反一次(即一个周期20个时间单元).
+去掉了一些中间寄存器的module, 改在`ex`, `mem`这些module中用`reg`类型保存中间变量.
 
-```Verilog
-module Pipeline_tb;
-initial begin
-  clk = 1'h0;
-  forever #10 clk = ~clk;
-end
+设计的难点在于时序关系, 时序逻辑与组合逻辑的结合, 解决forwarding等等, 大部分控制相关的内容都放在control_unit中, 由于control_unit各个功能对应在一个周期中的时间不尽相同, 所以涉及为组合逻辑.
 
-initial begin
-  rst = `RstEnable;
-  #195 rst = `RstDisable;
-  #1000 $finish;
-end
+为了方便(减少hazard), `HI`和`LO` 与`ALU`直接相连, 避免了`mflo`及`mul`这样的hazard.
 
-initial begin
-  $dumpfile("pipeline.vcd");
-  $dumpvars;
-end
+### Compile & Run
 
-yourCPU_sopc yourCPU_sopc_0(
-  .clk(clk),
-  .rst(rst)
-  );
-endmodule
-```
+    iverilog -o cpu tb_expye_cpu.v
+    vvp cpu
+    gtkwave pipeline.vcd
 
-#### SOPC
-实例化处理器以及指令储存器(ROM):
+![Regfile](http://7xkbgs.com1.z0.glb.clouddn.com/reg.png)
 
-```Verilog
-yourCPU yourCPU_0(
-  .clk(clk),
-  .rst(rst),
-  .inst_addr(inst_addr),
-  .inst_data(inst_data),
-  .inst_mem_chip_enable(inst_mem_chip_enable)
-  );
+### TODO
 
-inst_mem inst_mem_0(
-  .inst_mem_chip_enable(inst_mem_chip_enable),
-  .inst_addr(inst_addr),
-  .inst_data(inst_data)
-  );
-```
+* 进行时序仿真.
+* 剩余六条内存指令的实现(`lh`, `lhu`, `lb`, `lbu`, `sw`, `sb`).
+* 将ram改成大端模式.
+* 写`makefile`.
+* 解决一些没有处理的区分unsigned和signed的问题.
+* 用宏代替一些繁杂的指令.
 
-#### CPU architecture
-##### Main architecture:
-  * Control Unit
-  * Program Counter
-  * Instruction Fetch
-  * **Intermediate: IF_ID**
-  * Instruction Decode
-  * Register file
-  * **Intermediate: ID_EXE**
-  * Arithmetic Logic Unit
-  * **Intermediate: EXE_MEM**
-  * Data Memory
-  * **Intermediate: MEM_WB**
-
-分别介绍每个阶段的接口及内容:
-1. Control Unit:`(control_unit.v)`
-  * 接口:
-    ```Verilog
-    module control_unit (
-      	input clk,						   // Clock
-      	input m_mem_to_reg,				// Mem to Reg in stage MEM
-      	input m_write_reg,				// Write Reg in stage MEM
-      	input m_des_r,					// Destination Reg in stage MEM
-      	input e_des_r,					// Destination Reg in stage EXE
-      	input e_write_reg,				// Write Reg in stage EXE
-      	input rs_rt_equ,				// rs == rt ?
-      	output write_reg,				// Write Reg
-      	output mem_to_reg,				// Mem to Reg
-      	output write_mem,				// Write Mem
-      	output[`ALUBus] aluc,				// ALUcontrol
-      	output shift,					// Shift Mul
-      	output alu_imm,					// ALU Immediate
-      	output sext_signed,			// Sign extension == signed ?
-      	output reg_dt,					// Destination Reg == rt?
-      	output[`ForwardingBus] fwd_b,	// Forwarding B
-      	output[`ForwardingBus] fwd_a,	// Forwarding A
-      	output jump,					// Jump Mul
-      	output write_pc_ir,				// Write PC & IR
-      	output branch					// Branch
-    );
-    ```
-  * 功能:
-  控制单元, 同时处理forwarding.
-
-2. Program Counter
-  * 接口:
-  ```Verilog
-  module pc_reg (
-      input clk,                //Clock
-      input rst,                //Reset
-      input[`InstAddrBus] next_addr_i,    //Input address.
-      input write_pc_ir           //Write pc & ir, when we need to add a stall, activate it.
-      output[`InstAddrBus] pc_o,        //Output address.
-  );
-  ```
-  * 功能:
-  给出目前需要执行的指令的地址.
-
-3. Get next address(get_next_addr)
-  * 接口
-  ```Verilog
-  module get_next_addr (
-    input clk,                //Clock.
-    input branch,             //Branch(from Ctrl_unit)
-    input[`InstAddrBus] jump_addr,      //Jump address.
-    input[`InstAddrBus] pc,         //Addr from pc_reg.
-
-    output[`InstAddrBus] pc_plus_4,     //pc plus 4.
-    output[`InstAddrBus] next_addr_o    //Output next addr.           
-  );
-  ```
-  * 功能:
-  给出下一条指令的地址.
-
-4. Instruction Fetch
-  * 接口:
-  ```Verilog
-  module inst_mem (
-    input clk,            //Clock
-    input ce,           //Chip Enable
-
-    input[`InstAddrBus] addr    //Address
-    output[`InstBus] inst       //Instruction
-  );
-  ```
-  * 功能:
-  取指令.
-
-5. Instruction Decoding
-  * 接口:
-  ```Verilog
-  module id (
-    input rst,            // Reset
-
-    input[`InstAddrBus] inst_addr,  // Instruction address
-    input[`InstBus]   inst,     // Instruction
-
-    input reg_rt,         // Register destination == rt?
-    input jump,           // Jump instruction ?
-    input sext_signed,            // Signed or unsigned ?
-
-    output reg[`FuncBus]  func,       // Func
-    output reg[`OpcodeBus]  opcode,     // Opcode
-    output reg[`RsRtRdBus]  rs,       // rs
-    output reg[`RsRtRdBus]  rt,       // rt
-    output reg[`RsRtRdBus]  reg_des,    // rd or rt
-    output reg[`InstAddrBus] jump_addr,   // Jump address
-    output reg[`ALUBus]   imm_after_se  // Immediate after sign extension
-  );
-  ```
-
-  * 功能:
-  翻译指令.
-
-
-##### Miscellaneous:
-  * Sign extension
-    (from [stackoverflow](http://stackoverflow.com/questions/4176556/how-to-sign-extend-a-number-in-verilog).)
-  ```Verilog
-  always @(posedge clk) begin
-      extended[15:0] <= {{*{extend[7]}}, extend[7:0]}
-  end
-  ```
-  * Delay Slot(control hazard)
-  * Forwarding(data hazard)
-  * Register `hi` and `lo`.

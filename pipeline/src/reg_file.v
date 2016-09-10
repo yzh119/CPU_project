@@ -4,12 +4,14 @@ module reg_file (
 	input clk, 						// Clock.
 
 	input w_write_reg,				// Write register? in WRITE stage.
+	input jal,
 
-	input[`RsRtRdBus] rs, 			// rs
-	input[`RsRtRdBus] rt,			// rt
+	input [`RegDataBus] jal_addr,
+	input [`RsRtRdBus] rs, 			// rs
+	input [`RsRtRdBus] rt,			// rt
 
-	input[`RegAddrBus] reg_des,		// Written destination register.
-	input[`RegDataBus] reg_data,	// Written data.	
+	input [`RegAddrBus] reg_des,		// Written destination register.
+	input [`RegDataBus] reg_data,	// Written data.	
 
 	output reg[`RegDataBus] rs_o,	// Output the value in rs
 	output reg[`RegDataBus] rt_o	// Output the value in rt
@@ -57,8 +59,13 @@ module reg_file (
 	end
 
 	always @ (negedge clk) begin
+		
 		if (w_write_reg == `WriteEnable && reg_des != 5'h0)
 			regs[reg_des] <= reg_data;
+		
+		if (jal == `True) 
+			regs[`RegNum - 1] <= jal_addr;
+
 		reg0 <= regs[0];
 		reg1 <= regs[1];
 		reg2 <= regs[2];
