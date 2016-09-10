@@ -3,8 +3,8 @@
 module control_unit (
 	input m_mem_to_reg,				// Mem to Reg in stage MEM
 	input m_write_reg,				// Write Reg in stage MEM
-	input m_des_r,					// Destination Reg in stage MEM
-	input e_des_r,					// Destination Reg in stage EXE
+	input [`RegAddrBus]m_des_r,		// Destination Reg in stage MEM
+	input [`RegAddrBus]e_des_r,		// Destination Reg in stage EXE
 	input e_write_reg,				// Write Reg in stage EXE
 	input rs_rt_equ,				// rs == rt ?
 	input [`FuncBus] func,			// Func
@@ -20,15 +20,47 @@ module control_unit (
 	output reg alu_imm,					// ALU Immediate
 	output reg sext_signed,				// Sign extension == signed ?
 	output reg reg_rt,					// Destination Reg == rt?
-	output reg [`ForwardingBus] fwd_b,	// Forwarding B
 	output reg [`ForwardingBus] fwd_a,	// Forwarding A
-	output reg jump,					// Jump Mul
+	output reg [`ForwardingBus] fwd_b,	// Forwarding B
+	output reg [`JumpBus]jump,					// Jump Mul
 	output reg write_pc_ir,				// Write PC & IR
 	output reg branch					// Branch
 );
 
-	always @ (opcode, func) begin
+	initial begin		
+		write_pc_ir = `False;
+		branch 		= `False;
+		fwd_a 		= `PortSel1;
+		fwd_b		= `PortSel1;
+		jump 		= `JumpJ;
+	end
+
+	always @ (*) begin
 	// Arithmetic
+		write_pc_ir = `False;
+		branch 		= `False;
+		fwd_a 		= `PortSel1;
+		fwd_b		= `PortSel1;
+		jump 		= `JumpJ;
+
+
+		if (rs == m_des_r) begin
+			if (m_write_reg) fwd_a = `PortSel3;
+			if (m_mem_to_reg) fwd_a = `PortSel4;
+		end
+
+		if (rs == e_des_r) begin
+			if (e_write_reg) fwd_a = `PortSel2;
+		end
+
+		if (rt == m_des_r) begin
+			if (m_write_reg) fwd_b = `PortSel3;
+			if (m_mem_to_reg) fwd_b = `PortSel4;
+		end
+
+		if (rt == e_des_r) begin
+			if (e_write_reg) fwd_b = `PortSel2;
+		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_ADD) begin
 			write_reg 	= `True;
@@ -38,7 +70,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -50,7 +81,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -62,7 +92,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -74,7 +103,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end 
 
@@ -86,8 +114,7 @@ module control_unit (
 			shift 		= `False;
 			alu_imm	 	= `True;
 			sext_signed = `True;
-			ret_rt		= `True;
-			jump 		= `False;
+			reg_rt		= `True;
 			branch 	 	= `False;
 		end
 
@@ -99,9 +126,56 @@ module control_unit (
 			shift 		= `False;
 			alu_imm	 	= `True;
 			sext_signed = `False;
-			ret_rt		= `True;
-			jump 		= `False;
+			reg_rt		= `True;
 			branch 	 	= `False;
+		end
+
+		if (opcode == `OPCODE_NOP && func == `FUNC_MULT) begin 
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_MUL;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			branch 		= `False;
+		end
+
+		if (opcode == `OPCODE_NOP && func == `FUNC_MULTU) begin 
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_MUL;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			branch 		= `False;
+		end
+
+		if (opcode == `OPCODE_NOP && func == `FUNC_DIV) begin 
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_DIV;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			branch 		= `False;
+		end
+
+		if (opcode == `OPCODE_NOP && func == `FUNC_DIVU) begin 
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_DIVU;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			branch 		= `False;
 		end
 
 	// Data Transfer
@@ -137,8 +211,37 @@ module control_unit (
 
 		end
 
-		if (opcode == `OPCODE_LUI) begin 
+		if (opcode == `OPCODE_LUI) begin
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_LUI;
+			shift 		= `False;
+			alu_imm 	= `True;
+			reg_rt 		= `True;
+			branch 		= `False;
+		end
 
+		if (opcode == `OPCODE_NOP && func == `FUNC_MFLO) begin
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_MFLO;
+			shift 		= `False;
+			alu_imm 	= `False;
+			reg_rt 		= `False;
+			branch 		= `False;
+		end
+
+		if (opcode == `OPCODE_NOP && func == `FUNC_MFHI) begin 
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_MFHI;
+			shift 		= `False;
+			alu_imm 	= `False;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 	// Logical
@@ -151,7 +254,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -163,8 +265,7 @@ module control_unit (
 			shift 		= `False;
 			alu_imm	 	= `True;
 			sext_signed = `True;
-			ret_rt		= `True;
-			jump 		= `False;
+			reg_rt		= `True;
 			branch 	 	= `False;
 		end
 
@@ -176,7 +277,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -188,8 +288,7 @@ module control_unit (
 			shift 		= `False;
 			alu_imm	 	= `True;
 			sext_signed = `True;
-			ret_rt		= `True;
-			jump 		= `False;
+			reg_rt		= `True;
 			branch 	 	= `False;
 		end
 
@@ -201,7 +300,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -213,7 +311,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -225,7 +322,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -237,7 +333,6 @@ module control_unit (
 			shift 		= `False;
 			alu_imm		= `False;
 			reg_rt 		= `False;
-			jump 		= `False;
 			branch 		= `False;
 		end
 
@@ -249,55 +344,145 @@ module control_unit (
 			shift 		= `False;
 			alu_imm	 	= `True;
 			sext_signed = `True;
-			ret_rt		= `True;
-			jump 		= `False;
+			reg_rt		= `True;
 			branch 	 	= `False;
 		end
 
 	// Bitwise shift
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_SLL) begin 
-			
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem	= `False;
+			aluc 		= `ALU_SLL;
+			shift 		= `True;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_SRL) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem	= `False;
+			aluc 		= `ALU_SRL;
+			shift 		= `True;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_SRA) begin
-
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem	= `False;
+			aluc 		= `ALU_SRA;
+			shift 		= `True;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_SLLV) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_SLL;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_SRLV) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_SRL;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_SRAV) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_SRA;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `True;
+			reg_rt 		= `False;
+			branch 		= `False;
 		end
 
 	// Conditional branch
 
 		if (opcode == `OPCODE_BEQ) begin 
-
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_NOP;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `False;
+			reg_rt 		= `False;
+			jump 		= `JumpB;
+			if (rs_rt_equ == `True) begin
+				branch 	= `True;
+			end else begin
+				branch 	= `False;
+			end
 		end
 
 		if (opcode == `OPCODE_BNE) begin 
-
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_NOP;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `False;
+			reg_rt 		= `False;
+			jump 		= `JumpB;
+			if (rs_rt_equ == `False) begin 
+				branch 	= `False;
+			end else begin 
+				branch 	= `True;
+			end
 		end
 
 	// Unconditional jump
 
 		if (opcode == `OPCODE_J) begin 
-
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_NOP;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `False;
+			reg_rt 		= `False;
+			branch 		= `True;
+			jump 		= `JumpJ;
 		end
 
 		if (opcode == `OPCODE_NOP && func == `FUNC_JR) begin 
-
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `False;
+			aluc 		= `ALU_NOP;
+			shift 		= `False;
+			alu_imm 	= `False;
+			sext_signed = `False;
+			branch 		= `True;
+			jump 		= `JumpJR;
 		end
 
 		if (opcode == `OPCODE_JAL) begin 

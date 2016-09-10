@@ -9,7 +9,7 @@ module pc_reg (
 
 	always @ (posedge clk) begin
 		if (rst == `RstDisable) begin
-			if (write_pc_ir == `WriteDisable) pc_o <= next_addr_i;
+			if (write_pc_ir == `False) pc_o <= next_addr_i;
 		end else
 			pc_o <= `ZeroWord;
 	end

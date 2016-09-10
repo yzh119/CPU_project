@@ -15,7 +15,7 @@
 `define ChipDisable														1'b0		
 `define InstBus 														31:0
 `define ZeroWord 														32'h0												
-`define ALUBus															3:0
+`define ALUBus															4:0
 `define RegDataBus														31:0
 `define RegAddrBus														4:0
 `define RegAddrBits														5
@@ -57,6 +57,10 @@
 `define LowLevel														1'b0
 `define True															1'b1
 `define False															1'b0
+`define JumpBus															1:0
+`define JumpJR															2'h2
+`define JumpJ															2'h1
+`define JumpB															2'h0
 
 //====================== Arithmetic, Shift, Condition and Logic, Data transfer ===================================
 `define FUNC_ADD													6'h20
@@ -87,7 +91,7 @@
 `define FUNC_SLT													6'h2a
 `define FUNC_SLTU													6'h2b
 `define FUNC_MFHI													6'h10
-`define FUNC_MFLO													6'h21
+`define FUNC_MFLO													6'h12
 `define FUNC_JR														6'h8
 `define FUNC_NOP													6'h0
 
@@ -115,17 +119,23 @@
 `define OPCODE_NOP													6'h0
 
 //====================== ALU ==================================
-`define ALU_ADD														4'h0
-`define ALU_SUB														4'h1
-`define ALU_AND														4'h2
-`define ALU_OR														4'h3
-`define ALU_XOR														4'h4
-`define ALU_NOR														4'h5
-`define ALU_SLT														4'h6
-`define ALU_SLTU													4'h7
-`define ALU_SLL														4'h8
-`define ALU_SRL														4'h9
-`define ALU_SLA														4'h10
-`define ALU_SRA														4'h11
-
+`define ALU_ADD														5'h0
+`define ALU_SUB														5'h1
+`define ALU_AND														5'h2
+`define ALU_OR														5'h3
+`define ALU_XOR														5'h4
+`define ALU_NOR														5'h5
+`define ALU_SLT														5'h6
+`define ALU_SLTU													5'h7
+`define ALU_SLL														5'h8
+`define ALU_SRL														5'h9
+`define ALU_SLA														5'ha
+`define ALU_SRA														5'hb
+`define ALU_LUI														5'hc
+`define ALU_MUL														5'hd
+`define ALU_DIV														5'he
+`define ALU_DIVU													5'hf
+`define ALU_MFLO													5'h10
+`define ALU_MFHI													5'h11
+`define ALU_NOP														5'h12
 //====================== Exception & Interrupt ==================================
