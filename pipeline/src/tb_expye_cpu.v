@@ -1,3 +1,4 @@
+`timescale 1ns/1ps
 `include "expye_cpu.v"
 
 module tb_expye_cpu;
@@ -10,12 +11,12 @@ module tb_expye_cpu;
 	end
 
 	initial begin 
-		#(3 * `Periodicity)
+		#(1 * `Periodicity)
 		rst = `RstDisable;
 	end
 
 	initial begin 
-		#(40 * `Periodicity)
+		#(90 * `Periodicity)
 		$finish;
 	end
 

@@ -72,10 +72,10 @@ module id (
 		) begin
 
 		if (sext_signed)
-			imm_after_se = {{`LengthOfImmeInInst{1'h0}}, this_inst[`ImmeInInst]};
-		else
 			imm_after_se = {{`LengthOfImmeInInst{this_inst[`TopBitOfImmeInInst]}}, this_inst[`ImmeInInst]};
-
+		else
+			imm_after_se = {{`LengthOfImmeInInst{1'h0}}, this_inst[`ImmeInInst]};
+			
 		if (reg_rt)
 			reg_des = this_inst[`RtInInst];
 		else

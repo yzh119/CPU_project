@@ -83,6 +83,7 @@ module expye_cpu(
 	wire ctl_mem_to_reg;
 	wire ctl_write_mem;
 	wire [`ALUBus] ctl_aluc;
+	wire [`MEMBus] ctl_memc;
 	wire ctl_shift;
 	wire ctl_alu_imm;
 	wire ctl_sext_signed;
@@ -183,6 +184,7 @@ module expye_cpu(
 			.mem_to_reg  		(ctl_mem_to_reg),	
 			.write_mem   		(ctl_write_mem),
 			.aluc        		(ctl_aluc),
+			.memc        		(ctl_memc),
 			.shift       		(ctl_shift),
 			.alu_imm     		(ctl_alu_imm),
 			.sext_signed 		(ctl_sext_signed),
@@ -195,6 +197,7 @@ module expye_cpu(
 		);
 
 	wire [`RegDataBus] write_mem_val;
+	wire [`MEMBus] mem_memc;
 	wire e_write_mem;
 
 	ex ex_0(
@@ -204,6 +207,7 @@ module expye_cpu(
 			.exe_mem_to_reg (ctl_mem_to_reg),
 			.exe_write_mem  (ctl_write_mem),
 			.exe_aluc       (ctl_aluc),
+			.exe_memc       (ctl_memc),
 			.exe_alu_imm    (ctl_alu_imm),
 			.exe_shift      (ctl_shift),
 
@@ -216,6 +220,7 @@ module expye_cpu(
 			.exe_mem_to_reg_o	(e_mem_to_reg),
 			.exe_write_mem_o 	(e_write_mem),
 
+			.mem_memc       (mem_memc),
 			.alu_result     (alu_result),
 			.e_des_r        (e_des_r),
 			.write_mem_val  (write_mem_val)
@@ -227,6 +232,7 @@ module expye_cpu(
 			.m_write_reg_i (e_write_reg),
 			.m_mem_to_reg_i(e_mem_to_reg),
 			.m_write_mem   (e_write_mem),
+			.mem_memc      (mem_memc),
 
 			.alu_result_i  (alu_result),
 			.write_mem_val (write_mem_val),

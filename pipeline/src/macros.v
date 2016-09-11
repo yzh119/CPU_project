@@ -16,6 +16,7 @@
 `define InstBus 														31:0
 `define ZeroWord 														32'h0												
 `define ALUBus															4:0
+`define MEMBus															2:0
 `define RegDataBus														31:0
 `define RegAddrBus														4:0
 `define RegAddrBits														5
@@ -61,6 +62,14 @@
 `define JumpJR															2'h2
 `define JumpJ															2'h1
 `define JumpB															2'h0
+`define HalfWordLength													5'h10
+`define HighestBit														5'h1f
+`define LowHalf															15:0
+`define HighHalf														31:16
+`define FirstByte														31:24
+`define SecondByte														23:16
+`define ThirdByte														15:8
+`define FourthByte														7:0
 
 //====================== Arithmetic, Shift, Condition and Logic, Data transfer ===================================
 `define FUNC_ADD													6'h20
@@ -138,4 +147,12 @@
 `define ALU_MFLO													5'h10
 `define ALU_MFHI													5'h11
 `define ALU_NOP														5'h12
+
+//====================== MEM ==================================
+`define MEM_WORD													3'h0
+`define MEM_HALF													3'h1
+`define MEM_BYTE													3'h2
+`define MEM_EXT_HALF												3'h3
+`define MEM_EXT_BYTE												3'h4
+
 //====================== Exception & Interrupt ==================================

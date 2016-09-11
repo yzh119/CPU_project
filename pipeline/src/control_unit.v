@@ -18,6 +18,7 @@ module control_unit (
 	output reg mem_to_reg,				// Mem to Reg
 	output reg write_mem,				// Write Mem
 	output reg [`ALUBus] aluc,			// ALUcontrol
+	output reg [`MEMBus] memc,
 	output reg shift,					// Shift Mul
 	output reg alu_imm,					// ALU Immediate
 	output reg sext_signed,				// Sign extension == signed ?
@@ -46,6 +47,7 @@ module control_unit (
 		fwd_b		= `PortSel1;
 		jump 		= `JumpJ;
 		jal 		= `False;
+		memc		= `MEM_WORD;
 
 		if (rs == m_des_r) begin
 			if (m_write_reg) fwd_a = `PortSel3;
@@ -181,22 +183,55 @@ module control_unit (
 			alu_imm 	= `True;
 			sext_signed = `True;
 			reg_rt 		= `True;
+			memc 		= `MEM_WORD;
 		end
 
 		if (opcode == `OPCODE_LH) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `True;
+			write_mem 	= `False;
+			aluc 		= `ALU_ADD;
+			shift 		= `False;
+			alu_imm 	= `True;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			memc 		= `MEM_HALF;
 		end
 
 		if (opcode == `OPCODE_LHU) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `True;
+			write_mem 	= `False;
+			aluc 		= `ALU_ADD;
+			shift 		= `False;
+			alu_imm 	= `True;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			memc 		= `MEM_EXT_HALF;
 		end
 
 		if (opcode == `OPCODE_LB) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `True;
+			write_mem 	= `False;
+			aluc 		= `ALU_ADD;
+			shift 		= `False;
+			alu_imm 	= `True;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			memc 		= `MEM_BYTE;
 		end
 
 		if (opcode == `OPCODE_LBU) begin 
-
+			write_reg 	= `True;
+			mem_to_reg 	= `True;
+			write_mem 	= `False;
+			aluc 		= `ALU_ADD;
+			shift 		= `False;
+			alu_imm 	= `True;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			memc 		= `MEM_EXT_BYTE;
 		end
 
 		if (opcode == `OPCODE_SW) begin 
@@ -208,14 +243,31 @@ module control_unit (
 			alu_imm 	= `True;
 			sext_signed = `True;
 			reg_rt 		= `True;
+			memc 		= `MEM_WORD;
 		end
 
 		if (opcode == `OPCODE_SH) begin 
-
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `True;
+			aluc 		= `ALU_ADD;
+			shift 		= `False;
+			alu_imm 	= `True;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			memc 		= `MEM_HALF;
 		end
 
 		if (opcode == `OPCODE_SB) begin 
-
+			write_reg 	= `False;
+			mem_to_reg 	= `False;
+			write_mem 	= `True;
+			aluc 		= `ALU_ADD;
+			shift 		= `False;
+			alu_imm 	= `True;
+			sext_signed = `True;
+			reg_rt 		= `True;
+			memc 		= `MEM_BYTE;
 		end
 
 		if (opcode == `OPCODE_LUI) begin
@@ -267,7 +319,7 @@ module control_unit (
 			aluc 		= `ALU_AND;
 			shift 		= `False;
 			alu_imm	 	= `True;
-			sext_signed = `True;
+			sext_signed = `False;
 			reg_rt		= `True;
 		end
 
@@ -288,7 +340,7 @@ module control_unit (
 			aluc 		= `ALU_OR;
 			shift 		= `False;
 			alu_imm	 	= `True;
-			sext_signed = `True;
+			sext_signed = `False;
 			reg_rt		= `True;
 		end
 

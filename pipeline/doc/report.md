@@ -3,7 +3,7 @@
 ## Phase I: Pipeline CPU Design(simulation)
 
 ### Target
-用五级流水完成[MIPS instruction set](https://en.wikipedia.org/wiki/MIPS_instruction_set#MIPS_assembly_language)的所有(`mfcZ`和`mtcZ`涉及coprocessor, 暂不涉及)指令, 第一阶段只进行模拟, 不写在FPGA上.
+用五级流水完成wikipedia上的[MIPS instruction set](https://en.wikipedia.org/wiki/MIPS_instruction_set#MIPS_assembly_language)的所有(`mfcZ`和`mtcZ`涉及coprocessor, 暂不涉及)指令, 第一阶段只进行模拟, 不写在FPGA上.
 
 ### Environment
 轻量级环境:Sublime + System Verilog Plugin + [iverilog](https://github.com/steveicarus/iverilog) + [gtkwave](http://gtkwave.sourceforge.net/).
@@ -41,7 +41,7 @@ GCC-toolchain可以用于构建MIPS指令集的二进制码.
 ### Design
 框架由李亚民资料扩展而得.
 
-![CPU Design](http://7xkbgs.com1.z0.glb.clouddn.com/cpu_design.png)
+![CPU Design](cpu_design.png)
 
 去掉了一些中间寄存器的module, 改在`ex`, `mem`这些module中用`reg`类型保存中间变量.
 
@@ -55,14 +55,15 @@ GCC-toolchain可以用于构建MIPS指令集的二进制码.
     vvp cpu
     gtkwave pipeline.vcd
 
-![Regfile](http://7xkbgs.com1.z0.glb.clouddn.com/reg.png)
+![Regfile](lym.png)
+图中是lym资料中test data的波形图(测试已通过).
 
 ### TODO
 
 * 进行时序仿真.
-* 剩余六条内存指令的实现(`lh`, `lhu`, `lb`, `lbu`, `sw`, `sb`).
-* 将ram改成大端模式.
+* <del>剩余六条内存指令的实现(`lh`, `lhu`, `lb`, `lbu`, `sw`, `sb`). </del>(已完成)
+* <del>将ram改成大端模式.</del>
 * 写`makefile`.
-* 解决一些没有处理的区分unsigned和signed的问题.
+* <del>解决一些没有处理的区分unsigned和signed的问题.</del>(已完成)
 * 用宏代替一些繁杂的指令.
 

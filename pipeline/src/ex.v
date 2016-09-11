@@ -8,6 +8,7 @@ module ex (
 	input exe_mem_to_reg,			// Memory to reg? in EXE stage.
 	input exe_write_mem,			// Write memory? in EXE stage.
 	input [`ALUBus] exe_aluc,		// ALU type in EXE stage.
+	input [`MEMBus] exe_memc,
 	input exe_alu_imm,				// ALU immediate in EXE stage.
 	input exe_shift,				// Shift? in EXE stage.
 	
@@ -20,6 +21,7 @@ module ex (
 	output reg exe_mem_to_reg_o,					// Mem to reg? (Output)
 	output reg exe_write_mem_o,						// Write memory? (Output)
 
+	output reg [`MEMBus] mem_memc,
 	output [`RegDataBus] alu_result,				// Operate result.
 	output reg [`RegAddrBus] e_des_r,				// Destination register.
 	output reg [`RegDataBus] write_mem_val			// Save value.
@@ -38,6 +40,7 @@ module ex (
 	always @ (posedge clk) begin
 
 		this_aluc 			<= exe_aluc;
+		mem_memc 			<= exe_memc;
 		exe_write_reg_o 	<= exe_write_reg;
 		exe_mem_to_reg_o	<= exe_mem_to_reg;
 		exe_write_mem_o		<= exe_write_mem;
@@ -132,10 +135,11 @@ module alu (
 				alu_result <= alu_op_2 	>> 	alu_op_1[`ShamtBus];
 			`ALU_SLA:
 				alu_result <= alu_op_2 	<<< alu_op_1[`ShamtBus];
-			`ALU_SRA:
-				alu_result <= alu_op_2 	>>> alu_op_1[`ShamtBus];   
+			`ALU_SRA: begin
+				alu_result <= $signed(alu_op_2)	>>> alu_op_1[`ShamtBus];   
+			end
 			`ALU_LUI:
-				alu_result <= alu_op_2 	<< 5'h10;
+				alu_result <= alu_op_2 	<< `HalfWordLength;
 			`ALU_MUL: begin
 				alu_result 	<= `ZeroWord;
 				write_hi_lo	<= `True;

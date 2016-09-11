@@ -5,9 +5,14 @@ module inst_mem (
 	output reg[`InstBus] inst 		//Instruction
 );
 	reg [`InstBus] inst_pool[0: `InstMemNum - 1];
+	integer i;
 
-	initial $readmemh( "inst.data", inst_pool);
-
+	initial begin
+		for (i = 0; i < `InstMemNum; i++)
+			inst_pool[i] = `ZeroWord;
+		
+		$readmemh( "inst.data", inst_pool);
+	end
 	always @ (*) begin
 		inst = inst_pool[addr[`InstMemNumLog - 1 :2]];
 	end
